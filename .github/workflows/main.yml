@@ -36,3 +36,15 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=aa -Dsonar.projectName='aa'
+        
+      - name: Pull Blacklock Code Scanner Docker Image
+        run: docker pull blacklocksec/code-scanner:latest
+
+      - name: Run Blacklock Code Scanner
+        run: |
+          docker run --rm \
+          -v $(pwd):/app \
+          -e SONAR_PROJECTKEY="aa" \
+          -e SONAR_HOST_URL=${{ secrets.SONAR_HOST_URL }} \
+          -e SONAR_TOKEN=${{ secrets.SONAR_TOKEN }} \
+          blacklocksec/code-scanner:latest
