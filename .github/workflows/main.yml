@@ -1,5 +1,5 @@
 name: Build
-# test
+
 on:
   push:
     branches:
@@ -10,7 +10,6 @@ jobs:
   build:
     name: Build and analyze
     runs-on: ubuntu-latest
-    
     steps:
       - uses: actions/checkout@v4
         with:
@@ -33,10 +32,11 @@ jobs:
           restore-keys: ${{ runner.os }}-m2
       - name: Build and analyze
         env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=aa -Dsonar.projectName='oOfWkC0e-kUsiu-u'
-        
+        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=oOfWkC0e-kUsiu-u -Dsonar.projectName='the-title-demo'
+
       - name: Pull Blacklock Code Scanner Docker Image
         run: docker pull blacklocksec/code-scanner:latest
 
@@ -46,5 +46,5 @@ jobs:
           -v $(pwd):/app \
           -e SONAR_PROJECTKEY="oOfWkC0e-kUsiu-u" \
           -e SONAR_HOST_URL=${{ secrets.SONAR_HOST_URL }} \
-          -e SONAR_TOKEN=${{ secrets.SONAR_TOKEN }} \
+          -e SONAR_TOKEN=${{ secrets.SONAR_TOKEN }} \ 
           blacklocksec/code-scanner:latest
