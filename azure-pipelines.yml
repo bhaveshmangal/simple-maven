@@ -23,13 +23,6 @@ steps:
       sonar | $(Agent.OS)
   displayName: 'Cache SonarQube packages'
 
-- task: Cache@2
-  inputs:
-    key: 'm2 | $(Agent.OS) | $(Build.SourcesDirectory)/**/*.pom'
-    path: '~/.m2'
-    restoreKeys: |
-      m2 | $(Agent.OS)
-  displayName: 'Cache Maven packages'
 
 - script: |
     mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey="azure-the-test"
