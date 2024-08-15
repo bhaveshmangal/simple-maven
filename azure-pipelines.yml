@@ -2,40 +2,27 @@ trigger:
 - master
 
 pool:
-  vmImage: ubuntu-latest
+  vmImage: 'maven:3-eclipse-temurin-17'
+
+variables:
+  SONAR_PROJECTKEY: 'azure-the-test'
+  SONAR_PROJECTNAME: 'azure-the-test'
 
 steps:
 - checkout: self
   displayName: 'Checkout Source'
-  fetchDepth: 0  # Shallow clones should be disabled for a better relevancy of analysis
-
-- script: |
-    sudo apt-get update
-    sudo apt-get install -y openjdk-17-jdk
-    java -version
-  displayName: 'Install JDK 17'
 
 - task: Cache@2
   inputs:
     key: 'sonar | $(Agent.OS)'
-    path: '~/.sonar/cache'
+    path: '~/.sonar'
     restoreKeys: |
       sonar | $(Agent.OS)
   displayName: 'Cache SonarQube packages'
 
-
 - script: |
-    mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey="azure-the-test" -Dsonar.projectName='azure-the-test'
-  displayName: 'Build and analyze'
+    mvn verify sonar:sonar -Dsonar.projectKey=$(SONAR_PROJECTKEY) -Dsonar.projectName=$(SONAR_PROJECTNAME)
+  displayName: 'Run SonarQube Analysis'
   env:
     SONAR_TOKEN: $(SONAR_TOKEN)
     SONAR_HOST_URL: $(SONAR_HOST_URL)
-
-
-- script: |
-    docker pull blacklocksec/code-scanner:latest
-    docker run --rm -v $(Build.SourcesDirectory):/app -e SONAR_PROJECTKEY="azure-the-test" -e SONAR_HOST_URL=$(SONAR_HOST_URL) -e SONAR_TOKEN=$(SONAR_TOKEN) blacklocksec/code-scanner:latest
-  displayName: 'Run Blacklock Code Scanner'
-  env:
-    SONAR_HOST_URL: $(SONAR_HOST_URL)
-    SONAR_TOKEN: $(SONAR_TOKEN)
