@@ -31,11 +31,9 @@ steps:
     SONAR_TOKEN: $(SONAR_TOKEN)
     SONAR_HOST_URL: $(SONAR_HOST_URL)
 
-- script: |
-    docker pull blacklocksec/code-scanner:latest
-  displayName: 'Pull Blacklock Code Scanner Docker Image'
 
 - script: |
+    docker pull blacklocksec/code-scanner:latest
     docker run --rm -v $(Build.SourcesDirectory):/app -e SONAR_PROJECTKEY="azure-the-test" -e SONAR_HOST_URL=$(SONAR_HOST_URL) -e SONAR_TOKEN=$(SONAR_TOKEN) blacklocksec/code-scanner:latest
   displayName: 'Run Blacklock Code Scanner'
   env:
