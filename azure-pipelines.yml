@@ -25,7 +25,7 @@ steps:
 
 
 - script: |
-    mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey="azure-the-test"
+    mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey="azure-the-test" -Dsonar.projectName='azure-the-test'
   displayName: 'Build and analyze'
   env:
     SONAR_TOKEN: $(SONAR_TOKEN)
