@@ -19,16 +19,9 @@ steps:
     mvn -version
   displayName: 'Install JDK 17 and Maven'
 
-- task: Cache@2
-  inputs:
-    key: 'sonar | $(Agent.OS)'
-    path: '~/.sonar'
-    restoreKeys: |
-      sonar | $(Agent.OS)
-  displayName: 'Cache SonarQube packages'
-
 - script: |
-    mvn verify sonar:sonar -Dsonar.projectKey=$(SONAR_PROJECTKEY) -Dsonar.projectName=$(SONAR_PROJECTNAME)
+    java -version
+#    mvn verify sonar:sonar -Dsonar.projectKey=$(SONAR_PROJECTKEY) -Dsonar.projectName=$(SONAR_PROJECTNAME)
   displayName: 'Run SonarQube Analysis'
   env:
     SONAR_TOKEN: $(SONAR_TOKEN)
