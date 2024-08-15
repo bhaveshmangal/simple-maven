@@ -1,0 +1,46 @@
+trigger:
+- master
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+- checkout: self
+  displayName: 'Checkout Source'
+  fetchDepth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+
+- task: UseJava@1
+  inputs:
+    versionSpec: '17'
+  displayName: 'Set up JDK 17'
+
+- task: Cache@2
+  inputs:
+    key: 'sonar | $(Agent.OS)'
+    path: '~/.sonar/cache'
+    restoreKeys: |
+      sonar | $(Agent.OS)
+  displayName: 'Cache SonarQube packages'
+
+- task: Cache@2
+  inputs:
+    key: 'm2 | $(Agent.OS) | $(Build.SourcesDirectory)/**/*.pom'
+    path: '~/.m2'
+    restoreKeys: |
+      m2 | $(Agent.OS)
+  displayName: 'Cache Maven packages'
+
+- script: |
+    mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=$(SONAR_PROJECTKEY) -Dsonar.projectName='azure-the-test'
+  displayName: 'Build and analyze'
+  env:
+    SONAR_TOKEN: $(SONAR_TOKEN)
+    SONAR_HOST_URL: $(SONAR_HOST_URL)
+
+- script: |
+    docker pull blacklocksec/code-scanner:latest
+    docker run --rm -v $(Build.SourcesDirectory):/app -e SONAR_PROJECTKEY="azure-the-test" -e SONAR_HOST_URL=$(SONAR_HOST_URL) -e SONAR_TOKEN=$(SONAR_TOKEN) blacklocksec/code-scanner:latest
+  displayName: 'Run Blacklock Code Scanner'
+  env:
+    SONAR_HOST_URL: $(SONAR_HOST_URL)
+    SONAR_TOKEN: $(SONAR_TOKEN)
