@@ -28,8 +28,10 @@ steps:
   - task: SonarQubeAnalyze@6
     inputs:
       jdkversion: 'JAVA_HOME_17_X64'
-  - script: ./gradlew sonarqube
-    displayName: 'Run SonarQube Analysis'
+  - script: mvn clean install sonar:sonar
+    displayName: 'Build with Maven and run SonarQube Analysis'
+    env:
+      MAVEN_OPTS: '-Xmx1024m'
 
   # Publish SonarQube Quality Gate Result
   - task: SonarQubePublish@6
