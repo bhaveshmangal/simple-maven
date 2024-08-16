@@ -1,27 +1,27 @@
 trigger:
-- master
-
-pool:
-  vmImage: 'ubuntu-latest'
+  - master # or the name of your main branch
 
 steps:
-- task: SonarQubeAnalyze@6
-  inputs:
-    jdkversion: 'JAVA_HOME_17_X64'
-    SONAR_TOKEN: $(SONAR_TOKEN)
+  # Checkout the repository
+  - checkout: self
 
-- checkout: self
-  displayName: 'Checkout Source'
+  # Disable shallow fetch
+  - script: echo "Disabling shallow fetch..."
+    displayName: 'Disable shallow fetch'
+    env:
+      GIT_DEPTH: 0
 
-- script: |
-    echo $(SONAR_HOST_URL)
-    sleep 10
-    docker pull blacklocksec/code-scanner:latest
-    docker run --rm -v $(Build.SourcesDirectory):/app \
-      -e SONAR_PROJECTKEY=hi-tester \
-      -e SONAR_HOST_URL=$(SONAR_HOST_URL) \
-      -e SONAR_TOKEN=$(SONAR_TOKEN) \
-      blacklocksec/code-scanner:latest
-  displayName: 'Run Blacklock Code Scanner'
-  env:
-    SONAR_HOST_URL: $(SONAR_HOST_URL)
+  # Prepare Analysis Configuration task
+  - task: SonarQubePrepare@6
+    inputs:
+      SonarQube: ''
+      scannerMode: 'Other'
+      extraProperties: |
+        sonar.projectKey=$(SonarProjectKey)
+        sonar.host.url=https://sonarqube.yourdomain.com
+        sonar.login=$(SonarToken)
+
+  # Publish Quality Gate Result task
+  - task: SonarQubePublish@6
+    inputs:
+      pollingTimeoutSec: '300'
