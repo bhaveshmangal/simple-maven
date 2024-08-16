@@ -1,7 +1,10 @@
 trigger:
   branches:
     include:
-      - master # or the name of your main branch
+      - master  # or the name of your main branch
+
+pool:
+  vmImage: 'ubuntu-latest'  # Use an appropriate VM image
 
 steps:
   # Checkout the repository
@@ -13,13 +16,28 @@ steps:
     env:
       GIT_DEPTH: 0
 
+  # Install JDK
+  - task: JavaToolInstaller@1
+    inputs:
+      versionSpec: '17'
+      jdkArchitecture: 'x64'
+      jdkSource: 'PreInstalled'
+
   # Prepare Analysis Configuration task
   - task: SonarQubePrepare@6
     inputs:
       SonarQube: 'main_server'
       scannerMode: 'Other'
+      configMode: 'manual'
+      additionalProperties: |
+        sonar.projectKey=not-azure
+        sonar.projectName=not-azure
 
   # Run SonarQube analysis
-  - task: SonarQubeAnalyze@6
+  - script: ./gradlew sonarqube
+    displayName: 'Run SonarQube Analysis'
+
+  # Publish SonarQube Quality Gate Result
+  - task: SonarQubePublish@6
     inputs:
-      jdkversion: 'JAVA_HOME_17_X64'
+      pollingTimeoutSec: '300'
