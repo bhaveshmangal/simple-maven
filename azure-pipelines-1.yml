@@ -1,29 +1,62 @@
 trigger:
-- master
+- main
 
 pool:
   vmImage: 'ubuntu-latest'
 
+variables:
+  MAVEN_CACHE: $(Pipeline.Workspace)/.m2/repository
+  SONAR_CACHE: $(Pipeline.Workspace)/.sonar/cache
+
 steps:
-- task: JavaToolInstaller@0
+- task: UseJavaVersion@1
   inputs:
     versionSpec: '17'
-    jdkArchitectureOption: 'x64'
-    jdkSourceOption: 'PreInstalled'
+    architecture: 'x64'
 
 - checkout: self
   displayName: 'Checkout Source'
 
-- script: |
-    echo $(SONAR_HOST_URL)
-    sleep 10
-    docker pull blacklocksec/code-scanner:latest
-    docker run --rm -v $(Build.SourcesDirectory):/app \
-      -e SONAR_PROJECTKEY=hi-tester \
-      -e SONAR_HOST_URL=$(SONAR_HOST_URL) \
-      -e SONAR_TOKEN=$(SONAR_TOKEN) \
-      blacklocksec/code-scanner:latest
-  displayName: 'Run Blacklock Code Scanner'
+- task: Maven@3
+  displayName: 'SonarQube analysis'
+  inputs:
+    mavenPomFile: 'pom.xml'
+    goals: 'verify sonar:sonar'
+    options: '-Dsonar.projectKey=$(SONAR_PROJECT_KEY)'
+    options: '-Dmaven.repo.local=$(MAVEN_CACHE)'
+    mavenOptions: '-Xms256m -Xmx1024m'
+    javaHomeOption: 'JDKVersion'
+    jdkVersionOption: '1.11'
+    jdkArchitectureOption: 'x64'
+    sonarQubeRunAnalysis: true
   env:
     SONAR_HOST_URL: $(SONAR_HOST_URL)
     SONAR_TOKEN: $(SONAR_TOKEN)
+
+- script: |
+    echo $(SONAR_HOST_URL)
+    docker pull blacklocksec/code-scanner:latest
+    docker run --rm -v $(Build.SourcesDirectory):/app \
+      -e SONAR_PROJECTKEY="$(SONAR_PROJECT_KEY)" \
+      -e SONAR_HOST_URL="$(SONAR_HOST_URL)" \
+      -e SONAR_TOKEN="$(SONAR_TOKEN)" \
+      blacklocksec/code-scanner:latest
+  displayName: 'Run Blacklock Code Scanner'
+  env:
+    SONAR_PROJECT_KEY: $(SONAR_PROJECT_KEY)
+    SONAR_HOST_URL: $(SONAR_HOST_URL)
+    SONAR_TOKEN: $(SONAR_TOKEN)
+
+- task: Cache@2
+  inputs:
+    key: 'maven | "$(Agent.OS)" | ~/.m2/repository'
+    restoreKeys: |
+      maven | "$(Agent.OS)" | ~/.m2/repository
+    path: $(MAVEN_CACHE)
+
+- task: Cache@2
+  inputs:
+    key: 'sonar | "$(Agent.OS)" | ~/.sonar/cache'
+    restoreKeys: |
+      sonar | "$(Agent.OS)" | ~/.sonar/cache
+    path: $(SONAR_CACHE)
