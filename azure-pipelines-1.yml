@@ -17,9 +17,9 @@ steps:
       SonarQube: ''
       scannerMode: 'Other'
       extraProperties: |
-        sonar.projectKey=$(SonarProjectKey)
-        sonar.host.url=https://sonarqube.yourdomain.com
-        sonar.login=$(SonarToken)
+        sonar.projectKey="not-azure"
+        sonar.host.url=$(SONAR_HOST_URL)
+        sonar.login=$(SONAR_TOKEN)
 
   # Publish Quality Gate Result task
   - task: SonarQubePublish@6
