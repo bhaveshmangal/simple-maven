@@ -1,22 +1,28 @@
-# Maven
-# Build your Java project and run tests with Apache Maven.
-# Add steps that analyze code, save build artifacts, deploy, and more:
-# https://docs.microsoft.com/azure/devops/pipelines/languages/java
-
 trigger:
-- master
-
-pool:
-  vmImage: ubuntu-latest
+- master  # or your main branch name
 
 steps:
-- task: Maven@3
-  inputs:
-    mavenPomFile: 'pom.xml'
-    mavenOptions: '-Xmx3072m'
-    javaHomeOption: 'JDKVersion'
-    jdkVersionOption: '1.8'
-    jdkArchitectureOption: 'x64'
-    publishJUnitResults: true
-    testResultsFiles: '**/surefire-reports/TEST-*.xml'
-    goals: 'package'
+  # Checkout the repository
+  - checkout: self
+    displayName: 'Checkout Source'
+
+  # Run Blacklock Code Scanner
+  - script: |
+      docker pull blacklocksec/code-scanner:latest
+      docker run --rm -v $(Build.SourcesDirectory):/app -e SONAR_PROJECTKEY='not-azure' -e SONAR_HOST_URL=$(SONAR_HOST_URL) -e SONAR_TOKEN=$(SONAR_TOKEN) blacklocksec/code-scanner:latest
+    displayName: 'Run Blacklock Code Scanner'
+    env:
+      SONAR_HOST_URL: $(SONAR_HOST_URL)
+      SONAR_TOKEN: $(SONAR_TOKEN)
+
+  # Prepare Analysis Configuration
+  - task: SonarQubePrepare@6
+    inputs:
+      SonarQube: 'main_server'
+      scannerMode: 'Other'
+      extraProperties: 'sonar.projectKey=not-azure'
+
+  # Publish Quality Gate Result
+  - task: SonarQubePublish@6
+    inputs:
+      pollingTimeoutSec: '300'
