@@ -35,12 +35,12 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=A4RTdyIM4IBoahuL -Dsonar.projectName='Simple Maven github'
+        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=aRJ5BKJsWM41FnQH -Dsonar.projectName='github_maven'
 
       - name: Pull Blacklock Code Scanner Docker Image
         run: docker pull blacklocksec/code-scanner:latest
 
       - name: Run Blacklock Code Scanner
-        run: docker run --rm -v $(pwd):/app -e SONAR_PROJECTKEY="A4RTdyIM4IBoahuL" -e SONAR_HOST_URL=${{ secrets.SONAR_HOST_URL }} -e SONAR_TOKEN=${{ secrets.SONAR_TOKEN }}  blacklocksec/code-scanner:latest
+        run: docker run --rm -v $(pwd):/app -e SONAR_PROJECTKEY="aRJ5BKJsWM41FnQH" -e SONAR_HOST_URL=${{ secrets.SONAR_HOST_URL }} -e SONAR_TOKEN=${{ secrets.SONAR_TOKEN }}  blacklocksec/code-scanner:latest
 
         
