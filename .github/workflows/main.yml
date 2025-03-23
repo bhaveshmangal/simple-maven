@@ -1,9 +1,12 @@
 name: Build
 
+
 on:
   push:
     branches:
       - master
+
+
 
 
 jobs:
@@ -25,6 +28,7 @@ jobs:
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
 
+
       - name: Cache Maven packages
         uses: actions/cache@v3
         with:
@@ -32,15 +36,18 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
 
+
       - name: Pull Blacklock Code Scanner Docker Image
         run: docker pull blacklocksec/code-scanner:staging
 
+
       - name: Run Blacklock Code Scanner
         run: docker run --rm -v $(pwd):/app -v /bl_reports/:/bl_reports/ -e SCAN_MODE="1" blacklocksec/code-scanner:staging
+
 
       - name: Build and analyze
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.scanner.skipJreProvisioning=true -Dsonar.projectKey="XNwzuT7:W.OZhAxf" -Dsonar.token=$SONAR_TOKEN -Dsonar.host.url=$SONAR_HOST_URL -Dsonar.externalIssuesReportPaths=$(echo /bl_reports/sonar_trivy.json /bl_reports/sonar_semgrep.json | tr ' ' '\n' | awk '{if (system("[ -f " $0 " ]") == 0) print $0}' | paste -sd ",")
+        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.scanner.skipJreProvisioning=true -Dsonar.projectKey="5zqC7BBZMySHLBrY" -Dsonar.token=$SONAR_TOKEN -Dsonar.host.url=$SONAR_HOST_URL -Dsonar.externalIssuesReportPaths=$(echo /bl_reports/sonar_trivy.json /bl_reports/sonar_semgrep.json | tr ' ' '\n' | awk '{if (system("[ -f " $0 " ]") == 0) print $0}' | paste -sd ",")
