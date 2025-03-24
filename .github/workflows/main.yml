@@ -38,7 +38,7 @@ jobs:
 
 
       - name: Pull Blacklock Code Scanner Docker Image
-        run: docker pull blacklocksec/code-scanner:staging
+        run: docker pull blacklocksec/code-scanner:stagingv2
 
 
       - name: Run Blacklock Code Scanner
